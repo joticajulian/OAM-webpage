@@ -8,8 +8,18 @@
           <div class="secondary-text">Powered by Blockchain</div>
         </div>
       </div>
-      <div id="auth"></div>
-      <div class="right"></div>
+      <div id="auth">
+        <div v-if="auth.logged">
+          <div id="image-profile">
+            <div v-if="validImageUrl(auth.imgUrl)">
+              <img :src="auth.imgUrl" />
+            </div>
+            <div v-else><img src="../assets/no-picture-profile.png" /></div>
+          </div>
+          <button @click="logout">Logout</button>
+        </div>
+        <div v-else><button @click="login">Login</button></div>
+      </div>
     </div>
   </div>
 </template>
@@ -19,8 +29,25 @@ export default {
   name: "HeaderEFTG",
   data() {
     return {
-      msg: "OAMEntryPage"
+      auth: {
+        user: "",
+        logged: false,
+        imgUrl: "",
+        keys: {
+          owner: "",
+          active: "",
+          posting: "",
+          memo: ""
+        }
+      }
     };
+  },
+  methods: {
+    login() {},
+    logout() {},
+    validImageUrl(url) {
+      return url && url.length > 0; //todo: validate the whole path
+    }
   }
 };
 </script>
