@@ -20,11 +20,14 @@
         </div>
         <div v-else><button @click="login">Login</button></div>
       </div>
+      <div v-if="showModal"><Auth v-on:close="showModal = false;"> </Auth></div>
     </div>
   </div>
 </template>
 
 <script>
+import Auth from "@/components/Auth";
+
 export default {
   name: "HeaderEFTG",
   data() {
@@ -39,15 +42,21 @@ export default {
           posting: "",
           memo: ""
         }
-      }
+      },
+      showModal: false
     };
   },
   methods: {
-    login() {},
+    login() {
+      this.showModal = true;
+    },
     logout() {},
     validImageUrl(url) {
       return url && url.length > 0; //todo: validate the whole path
     }
+  },
+  components: {
+    Auth
   }
 };
 </script>
