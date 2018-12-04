@@ -95,5 +95,27 @@ export default {
     console.log(path);
     console.log(result);
     return result;
+  },
+
+  dateToString: function(date) {
+    return (
+      this.pad0(date.getFullYear(), 4) +
+      "-" +
+      this.pad0(date.getMonth() + 1) +
+      "-" +
+      this.pad0(date.getDate()) +
+      "T" +
+      this.pad0(date.getHours()) +
+      ":" +
+      this.pad0(date.getMinutes()) +
+      ":" +
+      this.pad0(date.getSeconds())
+    );
+  },
+
+  pad0: function(num, len) {
+    var zeroString = "00000";
+    if (!len) len = 2;
+    return zeroString.substring((num + "").length, len) + num;
   }
 };

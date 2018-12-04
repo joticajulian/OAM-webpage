@@ -1,6 +1,6 @@
 <template>
   <div>
-    <HeaderEFTG></HeaderEFTG>
+    <HeaderEFTG ref="headerEFTG"></HeaderEFTG>
     <div id="bodyForm">
       <div><div class="form-label">*Indicates required field</div></div>
       <div class="form">
@@ -8,20 +8,20 @@
           <div class="form-label">*Company name</div>
           <input
             type="text"
-            v-model="Issuer_Name"
+            v-model="issuer_name"
             placeholder="e.g. Company ABC"
           />
         </div>
         <div class="block-input">
           <div class="form-label">*Company country</div>
-          <select v-model="HMS">
+          <select v-model="home_member_state">
             <option disabled value="">Please select one</option>
             <option
-              v-for="option in optionsHMR"
-              v-bind:key="option.value"
-              v-bind:value="option.value"
+              v-for="option in optionsHomeMemberState"
+              v-bind:key="option.id"
+              v-bind:value="option.id"
             >
-              {{ option.text }}
+              {{ option.name }}
             </option>
           </select>
         </div>
@@ -29,46 +29,42 @@
           <div class="form-label">*Legal entity identifier</div>
           <div class="form-label">
             <div>
-              <input type="radio" id="LEI" value="LEI" v-model="selLEI" />
+              <input type="radio" id="LEI" value="1" v-model="identifier_id" />
               <label for="LEI">Lei</label>
-              <input type="radio" id="VAT" value="VAT" v-model="selLEI" />
+              <input type="radio" id="VAT" value="2" v-model="identifier_id" />
               <label for="VAT">Vat number</label>
               <input
                 type="radio"
                 id="Reg_Num"
-                value="Reg_Num"
-                v-model="selLEI"
+                value="3"
+                v-model="identifier_id"
               />
               <label for="Reg_Num">Reg number</label>
             </div>
             <div>
-              <input
-                type="text"
-                v-model="Legal_Entity_Identifier"
-                placeholder=""
-              />
+              <input type="text" v-model="identifier_value" placeholder="" />
             </div>
           </div>
         </div>
         <div class="block-input">
           <div class="form-label">*Document class and subclass</div>
-          <select v-model="SubClass">
+          <select v-model="subclass">
             <option disabled value="">Please select one</option>
-            <option disabled value="">{{ optionsDocClass[0].text }}</option>
+            <option disabled value="">{{ docClasses[0].name }}</option>
             <option
-              v-for="option in optionsDocClass[0].optionsSubClass"
-              v-bind:key="option.value"
-              v-bind:value="option.value"
+              v-for="option in docClasses[0].subclass"
+              v-bind:key="option.id"
+              v-bind:value="option.id"
             >
-              {{ option.text }}
+              {{ option.name }}
             </option>
-            <option disabled value="">{{ optionsDocClass[1].text }}</option>
+            <option disabled value="">{{ docClasses[1].name }}</option>
             <option
-              v-for="option in optionsDocClass[1].optionsSubClass"
-              v-bind:key="option.value"
-              v-bind:value="option.value"
+              v-for="option in docClasses[1].subclass"
+              v-bind:key="option.id"
+              v-bind:value="option.id"
             >
-              {{ option.text }}
+              {{ option.name }}
             </option>
           </select>
         </div>
@@ -78,19 +74,19 @@
           <div class="form-label">Document disclosure date</div>
           <input
             type="text"
-            v-model="Doc_Discl_Date"
+            v-model="disclosure_date"
             placeholder="dd/mm/yyyy"
           />
         </div>
         <div class="block-input">
           <div class="form-label">Document language</div>
-          <select v-model="Doc_Language_PDF">
+          <select v-model="document_language">
             <option
-              v-for="option in optionsDocLanguagePDF"
-              v-bind:key="option.value"
-              v-bind:value="option.value"
+              v-for="option in languages"
+              v-bind:key="option.id"
+              v-bind:value="option.id"
             >
-              {{ option.text }}
+              {{ option.name }}
             </option>
           </select>
         </div>
@@ -98,17 +94,16 @@
           <div class="form-label">Document title</div>
           <input
             type="text"
-            v-model="Doc_Title"
+            v-model="comment"
             placeholder="e.g. Company ABC 2016 Annual Financial Report"
           />
         </div>
         <div class="block-input">
           <div class="form-label">*Document financial year</div>
-          <input type="text" v-model="Doc_Financial_Year" />
+          <input type="text" v-model="financial_year" />
         </div>
       </div>
       <div>
-        <button v-on:click="uploadFile">up</button>
         <input type="file" name="file" id="file" class="inputfile" />
         <label for="file">Upload file</label>
       </div>
@@ -121,66 +116,76 @@
 </template>
 
 <script>
+import Config from "@/config.js";
+import Utils from "@/js/utils.js";
 import HeaderEFTG from "@/components/HeaderEFTG";
 
 export default {
   name: "OAMEntryPage",
   data() {
     return {
-      Issuer_Name: "",
-      HMS: "",
-      selLEI: "",
-      Legal_Entity_Identifier: "",
-      SubClass: "",
-      Doc_Discl_Date: "",
-      Doc_Language_PDF: "",
-      Doc_Title: "",
-      Doc_Financial_Year: "",
-      optionsHMR: [
-        { text: "Italy", value: "IT" },
-        { text: "Spain", value: "SP" },
-        { text: "Luxembourg", value: "LU" }
-      ],
-      optionsDocClass: [
+      issuer_name: "",
+      home_member_state: "",
+      identifier_id: "",
+      identifier_value: "",
+      subclass: "",
+      disclosure_date: "",
+      document_language: "",
+      comment: "",
+      financial_year: "",
+      optionsHomeMemberState: [
         {
-          text: "1. Periodic Regulated Information",
-          value: "Periodic Regulated Information",
-          optionsSubClass: [
+          id: "RO",
+          name: "Romania"
+        },
+        {
+          id: "SP",
+          name: "Spain"
+        }
+      ],
+      docClasses: [
+        {
+          id: 1,
+          name: "Periodic Regulated Information",
+          subclass: [
             {
-              text: "1.1. Annual Financial Report",
-              value: "Annual Financial Report"
+              id: 3,
+              name: "Annual Financial Report"
             },
             {
-              text: "1.2. Half-Year Financial Report",
-              value: "Half-Year Financial Report"
+              id: 4,
+              name: "Half-Year Financial Report"
             },
             {
-              text: "1.3. Interim Management Statement",
-              value: "Interim Management Statement"
+              id: 5,
+              name: "Interim Management Statement"
             }
           ]
         },
         {
-          text: "2. Ongoing Regulated Information",
-          value: "Ongoing Regulated Information",
-          optionsSubClass: [
+          id: 2,
+          name: "Ongoing Regulated Information",
+          subclass: [
             {
-              text: "2.1. Home Member States",
-              value: "Home Member States"
+              id: 6,
+              name: "Home Member State"
             },
             {
-              text: "2.2. Audit Reports",
-              value: "Audit Reports"
+              id: 7,
+              name: "Inside Information"
             }
           ]
         }
       ],
-      optionsDocLanguagePDF: [
-        { text: "English", value: "English" },
-        { text: "French", value: "French" },
-        { text: "German", value: "German" },
-        { text: "Spanish", value: "Spanish" }
-      ]
+      languages: [
+        { id: "en-uk", name: "English" },
+        { id: "sp", name: "Spanish" }
+      ],
+      identifiers: {
+        "1": "LEI",
+        "2": "VAT",
+        "3": "RegistrationNumber"
+      }
     };
   },
   components: {
@@ -190,17 +195,59 @@ export default {
     this.startEventListenerFile();
   },
   methods: {
-    submit() {},
+    submit() {
+      let self = this;
+      async function submit_async() {
+        var client = new dsteem.Client(Config.RPC_NODE.url);
+        var privKey = null; //self.$refs.headerEFTG.auth.getBestKeyForPosting();
+
+        var json_metadata = {
+          issuer_name: self.issuer_name,
+          home_member_state: self.home_member_state,
+          identifier_id: self.identifier_id,
+          identifier_value: self.identifier_value,
+          subclass: self.subclass,
+          disclosure_date: Utils.dateToString(new Date(self.disclosure_date)),
+          document_language: self.document_language,
+          comment: self.comment,
+          financial_year: self.financial_year,
+          tags: [
+            self.subclass,
+            self.issuer_name,
+            self.home_member_state,
+            self.identifier_value
+          ],
+          submission_date: Utils.dateToString(new Date())
+        };
+
+        console.log("json_metadata");
+        console.log(json_metadata);
+
+        var post = {
+          author: self.$refs.headerEFTG.auth.user,
+          body: "",
+          json_metadata: json_metadata,
+          parent_author: "",
+          parent_permlink: "oam",
+          perm_link: "test-post",
+          title: "test data entry"
+        };
+        //var result = await client.broadcast.comment(post, privKey);
+        //console.log(result);
+      }
+
+      submit_async().catch(console.error);
+    },
     clear() {
-      this.Issuer_Name = "";
-      this.HMS = "";
-      this.selLEI = "";
-      this.Legal_Entity_Identifier = "";
-      this.SubClass = "";
-      this.Doc_Discl_Date = "";
-      this.Doc_Language_PDF = "";
-      this.Doc_Title = "";
-      this.Doc_Financial_Year = "";
+      this.issuer_name = "";
+      this.home_member_state = "";
+      this.identifier_id = "";
+      this.identifier_value = "";
+      this.subclass = "";
+      this.disclosure_date = "";
+      this.document_language = "";
+      this.comment = "";
+      this.financial_year = "";
     },
     uploadFile() {
       console.log(document.getElementById("file").files[0].name);

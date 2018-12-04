@@ -170,6 +170,13 @@ export default {
 
     close() {
       this.$emit("close");
+    },
+
+    getBestKeyForPosting() {
+      if (this.auth.posting != null) return this.auth.posting;
+      if (this.auth.active != null) return this.auth.active;
+      if (this.auth.owner != null) return this.auth.owner;
+      return null;
     }
   }
 };
