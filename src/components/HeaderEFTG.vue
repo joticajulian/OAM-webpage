@@ -20,7 +20,14 @@
         </div>
         <div v-else><button @click="login">Login</button></div>
       </div>
-      <div v-if="showModal"><Auth v-on:close="showModal = false;"> </Auth></div>
+      <div v-if="showModal">
+        <Auth
+          ref="auth"
+          v-on:login="auth = $event;"
+          v-on:close="showModal = false;"
+        >
+        </Auth>
+      </div>
     </div>
   </div>
 </template>
@@ -37,20 +44,51 @@ export default {
         logged: false,
         imgUrl: "",
         keys: {
-          owner: "",
-          active: "",
-          posting: "",
-          memo: ""
+          owner: null,
+          active: null,
+          posting: null,
+          memo: null
         }
       },
       showModal: false
     };
   },
+  mounted() {
+    this.autologin();
+  },
   methods: {
+    async autologin() {
+      //todo: where to save username and password? localStorage is not secure
+      /*if (localStorage.username && localStorage.password) {
+        var auth = await this.$refs.auth.login(
+          localStorage.username,
+          localStorage.password
+        );
+        if (auth.logged) {
+          this.auth = auth;
+        }
+      }*/
+    },
+
     login() {
       this.showModal = true;
     },
-    logout() {},
+    logout() {
+      console.log("@" + this.auth.user + " logout");
+      this.auth = {
+        user: "",
+        logged: false,
+        imgUrl: "",
+        keys: {
+          owner: null,
+          active: null,
+          posting: null,
+          memo: null
+        }
+      };
+      localStorage.removeItem("username");
+      localStorage.removeItem("password");
+    },
     validImageUrl(url) {
       return url && url.length > 0; //todo: validate the whole path
     }

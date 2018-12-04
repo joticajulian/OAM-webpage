@@ -6,7 +6,15 @@
 //import HelloWorld from "./components/HelloWorld";
 
 export default {
-  name: "App"
+  name: "App",
+  mounted() {
+    let dsteemscript = document.createElement("script");
+    dsteemscript.setAttribute(
+      "src",
+      "https://unpkg.com/eftg-dsteem@1.0.1/dist/dsteem.js"
+    );
+    document.head.appendChild(dsteemscript);
+  }
 };
 </script>
 
