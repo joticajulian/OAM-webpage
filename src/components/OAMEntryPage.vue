@@ -76,6 +76,7 @@
             type="text"
             v-model="disclosure_date"
             placeholder="dd/mm/yyyy"
+            :class="{ danger: error.disclosure_date }"
           />
         </div>
         <div class="block-input">
@@ -118,6 +119,8 @@
 <script>
 import Config from "@/config.js";
 import Utils from "@/js/utils.js";
+import debounce from "lodash.debounce";
+
 import HeaderEFTG from "@/components/HeaderEFTG";
 
 export default {
@@ -185,14 +188,44 @@ export default {
         "1": "LEI",
         "2": "VAT",
         "3": "RegistrationNumber"
+      },
+      error: {
+        issuer_name: false,
+        home_member_state: false,
+        identifier_id: false,
+        identifier_value: false,
+        subclass: false,
+        disclosure_date: false,
+        document_language: false,
+        comment: false,
+        financial_year: false
+      },
+      errorText: {
+        issuer_name: "No error",
+        home_member_state: "No error",
+        identifier_id: "No error",
+        identifier_value: "No error",
+        subclass: "No error",
+        disclosure_date: "No error",
+        document_language: "No error",
+        comment: "No error",
+        financial_year: "No error"
       }
     };
   },
   components: {
     HeaderEFTG
   },
+  created() {
+    this.debouncedValidateDate = debounce(this.validateDate, 300);
+  },
   mounted() {
     this.startEventListenerFile();
+  },
+  watch: {
+    disclosure_date: function(strDate, oldDate) {
+      this.debouncedValidateDate();
+    }
   },
   methods: {
     submit() {
@@ -262,6 +295,31 @@ export default {
         if (fileName) label.innerHTML = fileName;
         else label.innerHTML = labelVal;
       });
+    },
+
+    //validation
+    validateDate() {
+      var dateArray = this.disclosure_date.split("/");
+      if (dateArray.length !== 3) {
+        this.error.disclosure_date = true;
+        this.errorText.disclosure_date = "Invalid date format, use dd/mm/yyyy";
+        return;
+      }
+
+      var date = new Date(
+        dateArray[2] + "/" + dateArray[1] + "/" + dateArray[0]
+      );
+      if (
+        date.getDate() + "" !== dateArray[0] ||
+        date.getMonth() + 1 + "" !== dateArray[1] ||
+        date.getFullYear() + "" !== dateArray[2]
+      ) {
+        this.error.disclosure_date = true;
+        this.errorText.disclosure_date = "Invalid date format, use dd/mm/yyyy";
+        return;
+      }
+      this.error.disclosure_date = false;
+      this.errorText.disclosure_date = "No error";
     }
   }
 };
@@ -302,5 +360,9 @@ export default {
   background-color: red;
   outline: 1px dotted #000;
   outline: -webkit-focus-ring-color auto 5px;
+}
+
+.danger {
+  color: red;
 }
 </style>
