@@ -72,6 +72,15 @@
       <div class="form">
         <div class="block-input">
           <div class="form-label">Document disclosure date</div>
+          <div class="form-input-error">
+            <input
+              type="text"
+              v-model="disclosure_date"
+              placeholder="dd/mm/yyyy"
+              :class="{ danger: error.disclosure_date }"
+            />
+            <div class="danger"></div>
+          </div>
           <input
             type="text"
             v-model="disclosure_date"
@@ -120,6 +129,11 @@
 import Config from "@/config.js";
 import Utils from "@/js/utils.js";
 import debounce from "lodash.debounce";
+import axios from "axios";
+//import CryptoJS from "crypto-js";
+import SHA256 from "crypto-js/sha256";
+import Crypto from "crypto";
+import fs from "fs";
 
 import HeaderEFTG from "@/components/HeaderEFTG";
 
@@ -232,7 +246,11 @@ export default {
       let self = this;
       async function submit_async() {
         var client = new dsteem.Client(Config.RPC_NODE.url);
-        var privKey = null; //self.$refs.headerEFTG.auth.getBestKeyForPosting();
+        console.log("refs");
+        console.log(self);
+        var privKey = self.$refs.headerEFTG.auth.keys.posting;
+        var username = self.$refs.headerEFTG.auth.user;
+        console.log("posting key: " + privKey);
 
         var json_metadata = {
           issuer_name: self.issuer_name,
@@ -267,6 +285,40 @@ export default {
         };
         //var result = await client.broadcast.comment(post, privKey);
         //console.log(result);
+
+        var localFile = document.getElementById("file").files[0];
+        var formFile = new FormData();
+        formFile.append("pdf", localFile);
+
+        var reader = new FileReader();
+
+        reader.onload = function() {
+          var data = reader.result;
+          data = new Buffer(data);
+
+          /*const key = dsteem.PrivateKey.fromString(
+            "5KC1Ab4UxGE4GyXFcx4xwExDCJf8Jq3LujjcBsmFMYp5Cx4VfwK"
+          );*/
+          const imageHash = Crypto.createHash("sha256")
+            .update("ImageSigningChallenge")
+            .update(data)
+            .digest();
+          const signature = privKey.sign(imageHash).toString();
+          console.log("signature:" + signature);
+          axios
+            .post(
+              Config.IMAGE_HOSTER.url + "/" + username + "/" + signature,
+              formFile,
+              {
+                headers: {
+                  "Content-Type": "pdf"
+                }
+              }
+            )
+            .then(response => console.log(response))
+            .catch(console.error);
+        };
+        reader.readAsArrayBuffer(localFile);
       }
 
       submit_async().catch(console.error);
