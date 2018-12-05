@@ -81,6 +81,12 @@
             />
             <div class="danger"></div>
           </div>
+          <input
+            type="text"
+            v-model="disclosure_date"
+            placeholder="dd/mm/yyyy"
+            :class="{ danger: error.disclosure_date }"
+          />
         </div>
         <div class="block-input">
           <div class="form-label">Document language</div>
@@ -226,14 +232,6 @@ export default {
   },
   created() {
     this.debouncedValidateDate = debounce(this.validateDate, 300);
-
-    /*const key = dsteem.PrivateKey.fromString(
-      "5KC1Ab4UxGE4GyXFcx4xwExDCJf8Jq3LujjcBsmFMYp5Cx4VfwK"
-    );
-    const imageHash = Crypto.createHash("sha256")
-      .update("ImageSigningChallenge")
-      .digest();
-    console.log(key.sign(imageHash).toString());*/
   },
   mounted() {
     this.startEventListenerFile();
