@@ -296,9 +296,6 @@ export default {
           var data = reader.result;
           data = new Buffer(data);
 
-          /*const key = dsteem.PrivateKey.fromString(
-            "5KC1Ab4UxGE4GyXFcx4xwExDCJf8Jq3LujjcBsmFMYp5Cx4VfwK"
-          );*/
           const imageHash = Crypto.createHash("sha256")
             .update("ImageSigningChallenge")
             .update(data)
