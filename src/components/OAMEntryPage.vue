@@ -124,10 +124,7 @@ import Config from "@/config.js";
 import Utils from "@/js/utils.js";
 import debounce from "lodash.debounce";
 import axios from "axios";
-//import CryptoJS from "crypto-js";
-import SHA256 from "crypto-js/sha256";
 import Crypto from "crypto";
-import fs from "fs";
 
 import HeaderEFTG from "@/components/HeaderEFTG";
 
@@ -246,13 +243,45 @@ export default {
   methods: {
     submit() {
       let self = this;
+
+      //Principal function to submit the file and data
       async function submit_async() {
-        var client = new dsteem.Client(Config.RPC_NODE.url);
-        console.log("refs");
-        console.log(self);
-        var privKey = self.$refs.headerEFTG.auth.keys.posting;
+        //Validation of data
+        if (!self.validateDate()) {
+          //todo: all validations
+          console.log("Error validating fields!");
+          return false;
+        }
+
+        //User credentials
+        //todo: validation login!!!!!
         var username = self.$refs.headerEFTG.auth.user;
-        console.log("posting key: " + privKey);
+        var privKey = self.$refs.headerEFTG.auth.keys.posting;
+
+        //read file, calculation of the hash, and signature with privkey
+        //(format used in ImageHoster for uploading)
+        var localFile = document.getElementById("file").files[0];
+        var fileData = await self.readFileAsBuffer(localFile);
+        const imageHash = Crypto.createHash("sha256")
+          .update("ImageSigningChallenge")
+          .update(fileData)
+          .digest();
+        const signature = privKey.sign(imageHash).toString();
+        console.log("signature:" + signature);
+
+        //Uploading the file
+
+        var formFile = new FormData();
+        formFile.append("pdf", localFile);
+        var urlWithSignature =
+          Config.IMAGE_HOSTER.url + "/" + username + "/" + signature;
+
+        var response = await axios.post(urlWithSignature, formFile);
+        //TODO: try - catch to check if the file is too long and there is an error
+        console.log("response from image hoster");
+        console.log(response);
+
+        //Creation of the new post in the blockchain
 
         var json_metadata = {
           issuer_name: self.issuer_name,
@@ -260,7 +289,9 @@ export default {
           identifier_id: self.identifier_id,
           identifier_value: self.identifier_value,
           subclass: self.subclass,
-          disclosure_date: Utils.dateToString(new Date(self.disclosure_date)),
+          disclosure_date: Utils.dateToString(
+            self.ddmmyyyytoDate(self.disclosure_date)
+          ),
           document_language: self.document_language,
           comment: self.comment,
           financial_year: self.financial_year,
@@ -273,9 +304,6 @@ export default {
           submission_date: Utils.dateToString(new Date())
         };
 
-        console.log("json_metadata");
-        console.log(json_metadata);
-
         var post = {
           author: self.$refs.headerEFTG.auth.user,
           body: "",
@@ -285,46 +313,13 @@ export default {
           perm_link: "test-post",
           title: "test data entry"
         };
-        //var result = await client.broadcast.comment(post, privKey);
-        //console.log(result);
 
-        var localFile = document.getElementById("file").files[0];
-        var formFile = new FormData();
-        formFile.append("pdf", localFile);
-
-        var reader = new FileReader();
-
-        reader.onload = function() {
-          var data = reader.result;
-          data = new Buffer(data);
-
-          /*const key = dsteem.PrivateKey.fromString(
-            "5KC1Ab4UxGE4GyXFcx4xwExDCJf8Jq3LujjcBsmFMYp5Cx4VfwK"
-          );*/
-          const imageHash = Crypto.createHash("sha256")
-            .update("ImageSigningChallenge")
-            .update(data)
-            .digest();
-          const signature = privKey.sign(imageHash).toString();
-          console.log("signature:" + signature);
-          axios
-            .post(
-              Config.IMAGE_HOSTER.url + "/" + username + "/" + signature,
-              formFile,
-              {
-                headers: {
-                  "Content-Type": "pdf"
-                }
-              }
-            )
-            .then(response => console.log(response))
-            .catch(console.error);
-        };
-        reader.readAsArrayBuffer(localFile);
+        console.log("post");
+        console.log(post);
       }
-
       submit_async().catch(console.error);
     },
+
     clear() {
       this.issuer_name = "";
       this.home_member_state = "";
@@ -336,9 +331,7 @@ export default {
       this.comment = "";
       this.financial_year = "";
     },
-    uploadFile() {
-      console.log(document.getElementById("file").files[0].name);
-    },
+
     startEventListenerFile() {
       var input = document.getElementById("file");
       var label = input.nextElementSibling,
@@ -351,29 +344,56 @@ export default {
       });
     },
 
+    ddmmyyyytoDate(str) {
+      var array = str.split("/");
+      if (array.length !== 3) throw new Error("Invalid date format");
+      var date = new Date(array[2] + "/" + array[1] + "/" + array[0]);
+      if (
+        date.getDate() + "" !== array[0] ||
+        date.getMonth() + 1 + "" !== array[1] ||
+        date.getFullYear() + "" !== array[2]
+      ) {
+        throw new Error("Invalid date format");
+      }
+      return date;
+    },
+
+    //Definition of the function to read a file using Promises (better for using await)
+    //More info: https://blog.shovonhasan.com/using-promises-with-filereader/
+    async readFileAsBuffer(inputFile) {
+      const reader = new FileReader();
+
+      return new Promise((resolve, reject) => {
+        reader.onerror = () => {
+          reader.abort();
+          reject(new DOMException("Problem parsing file to upload"));
+        };
+
+        reader.onload = () => {
+          //the result is an ArrayBuffer, we change it to Buffer.
+          //this is important because the hash using 'crypto' is different in the 2 cases
+
+          //TODO: [es-lint] says that Buffer is not defined, however it works
+          var dataArrayBuffer = reader.result;
+          var dataBuffer = new Buffer(dataArrayBuffer);
+          resolve(dataBuffer);
+        };
+        reader.readAsArrayBuffer(inputFile);
+      });
+    },
+
     //validation
     validateDate() {
-      var dateArray = this.disclosure_date.split("/");
-      if (dateArray.length !== 3) {
+      try {
+        this.ddmmyyyytoDate(this.disclosure_date);
+      } catch (e) {
         this.error.disclosure_date = true;
         this.errorText.disclosure_date = "Invalid date format, use dd/mm/yyyy";
-        return;
-      }
-
-      var date = new Date(
-        dateArray[2] + "/" + dateArray[1] + "/" + dateArray[0]
-      );
-      if (
-        date.getDate() + "" !== dateArray[0] ||
-        date.getMonth() + 1 + "" !== dateArray[1] ||
-        date.getFullYear() + "" !== dateArray[2]
-      ) {
-        this.error.disclosure_date = true;
-        this.errorText.disclosure_date = "Invalid date format, use dd/mm/yyyy";
-        return;
+        return false;
       }
       this.error.disclosure_date = false;
       this.errorText.disclosure_date = "No error";
+      return true;
     }
   }
 };
