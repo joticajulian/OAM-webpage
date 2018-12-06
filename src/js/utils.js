@@ -117,5 +117,16 @@ export default {
     var zeroString = "00000";
     if (!len) len = 2;
     return zeroString.substring((num + "").length, len) + num;
+  },
+
+  isUpLetter: function(c) {
+    var A = "A".charCodeAt(0);
+    var Z = "Z".charCodeAt(0);
+    var code = c.charCodeAt(0);
+    return code >= A && code <= Z;
+  },
+
+  hasCountryCode: function(str) {
+    return this.isUpLetter(str[0]) && this.isUpLetter(str[1]);
   }
 };

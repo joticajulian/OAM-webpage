@@ -6,31 +6,45 @@
       <div class="form">
         <div class="block-input">
           <div class="form-label">*Company name</div>
-          <input
-            type="text"
-            v-model="issuer_name"
-            placeholder="e.g. Company ABC"
-          />
+          <div class="form-input-error">
+            <input
+              type="text"
+              v-model="issuer_name"
+              placeholder="e.g. Company ABC"
+              :class="{ dangertext: error.issuer_name }"
+            />
+            <div v-if="error.issuer_name" class="small dangertext">
+              {{ errorText.issuer_name }}
+            </div>
+          </div>
         </div>
         <div class="block-input">
           <div class="form-label">*Company country</div>
-          <select v-model="home_member_state">
-            <option disabled value="">Please select one</option>
-            <option
-              v-for="option in optionsHomeMemberState"
-              v-bind:key="option.id"
-              v-bind:value="option.id"
-            >
-              {{ option.name }}
-            </option>
-          </select>
+          <div class="form-input-error">
+            <select v-model="home_member_state">
+              <option disabled value="">Please select one</option>
+              <option
+                v-for="option in optionsHomeMemberState"
+                v-bind:key="option.id"
+                v-bind:value="option.id"
+              >
+                {{ option.name }}
+              </option>
+            </select>
+            <div v-if="error.home_member_state" class="small dangertext">
+              {{ errorText.home_member_state }}
+            </div>
+          </div>
         </div>
         <div class="block-input">
           <div class="form-label">*Legal entity identifier</div>
-          <div class="form-label">
+          <div class="form-input-error">
             <div>
+              <!-- if you change this values, verify Validation functions -->
               <input type="radio" id="LEI" value="1" v-model="identifier_id" />
               <label for="LEI">Lei</label>
+              <input type="radio" id="ISIN" value="4" v-model="identifier_id" />
+              <label for="ISIN">ISIN</label>
               <input type="radio" id="VAT" value="2" v-model="identifier_id" />
               <label for="VAT">Vat number</label>
               <input
@@ -41,32 +55,43 @@
               />
               <label for="Reg_Num">Reg number</label>
             </div>
-            <div>
-              <input type="text" v-model="identifier_value" placeholder="" />
+            <input
+              type="text"
+              v-model="identifier_value"
+              placeholder=""
+              :class="{ dangertext: error.identifier_value }"
+            />
+            <div v-if="error.identifier_value" class="small dangertext">
+              {{ errorText.identifier_value }}
             </div>
           </div>
         </div>
         <div class="block-input">
           <div class="form-label">*Document class and subclass</div>
-          <select v-model="subclass">
-            <option disabled value="">Please select one</option>
-            <option disabled value="">{{ docClasses[0].name }}</option>
-            <option
-              v-for="option in docClasses[0].subclass"
-              v-bind:key="option.id"
-              v-bind:value="option.id"
-            >
-              {{ option.name }}
-            </option>
-            <option disabled value="">{{ docClasses[1].name }}</option>
-            <option
-              v-for="option in docClasses[1].subclass"
-              v-bind:key="option.id"
-              v-bind:value="option.id"
-            >
-              {{ option.name }}
-            </option>
-          </select>
+          <div class="form-input-error">
+            <select v-model="subclass">
+              <option disabled value="">Please select one</option>
+              <option disabled value="">{{ docClasses[0].name }}</option>
+              <option
+                v-for="option in docClasses[0].subclass"
+                v-bind:key="option.id"
+                v-bind:value="option.id"
+              >
+                {{ option.name }}
+              </option>
+              <option disabled value="">{{ docClasses[1].name }}</option>
+              <option
+                v-for="option in docClasses[1].subclass"
+                v-bind:key="option.id"
+                v-bind:value="option.id"
+              >
+                {{ option.name }}
+              </option>
+            </select>
+            <div v-if="error.subclass" class="small dangertext">
+              {{ errorText.subclass }}
+            </div>
+          </div>
         </div>
       </div>
       <div class="form">
@@ -77,14 +102,17 @@
               type="text"
               v-model="disclosure_date"
               placeholder="dd/mm/yyyy"
-              :class="{ danger: error.disclosure_date }"
+              :class="{ dangertext: error.disclosure_date }"
             />
-            <div class="danger"></div>
+            <div v-if="error.disclosure_date" class="small dangertext">
+              {{ errorText.disclosure_date }}
+            </div>
           </div>
         </div>
         <div class="block-input">
           <div class="form-label">Document language</div>
           <select v-model="document_language">
+            <option value=""></option>
             <option
               v-for="option in languages"
               v-bind:key="option.id"
@@ -104,7 +132,16 @@
         </div>
         <div class="block-input">
           <div class="form-label">*Document financial year</div>
-          <input type="text" v-model="financial_year" />
+          <div class="form-input-error">
+            <input
+              type="text"
+              v-model="financial_year"
+              :class="{ dangertext: error.financial_year }"
+            />
+            <div v-if="error.financial_year" class="small dangertext">
+              {{ errorText.financial_year }}
+            </div>
+          </div>
         </div>
       </div>
       <div>
@@ -134,7 +171,7 @@ export default {
     return {
       issuer_name: "",
       home_member_state: "",
-      identifier_id: "",
+      identifier_id: "1",
       identifier_value: "",
       subclass: "",
       disclosure_date: "",
@@ -222,22 +259,64 @@ export default {
     HeaderEFTG
   },
   created() {
-    this.debouncedValidateDate = debounce(this.validateDate, 300);
-
-    /*const key = dsteem.PrivateKey.fromString(
-      "5KC1Ab4UxGE4GyXFcx4xwExDCJf8Jq3LujjcBsmFMYp5Cx4VfwK"
+    this.debounced_validateIssuerName = debounce(this.validateIssuerName, 300);
+    this.debounced_validateHomeMemberState = debounce(
+      this.validateHomeMemberState,
+      300
     );
-    const imageHash = Crypto.createHash("sha256")
-      .update("ImageSigningChallenge")
-      .digest();
-    console.log(key.sign(imageHash).toString());*/
+    this.debounced_validateIdentifierId = debounce(
+      this.validateIdentifierId,
+      300
+    );
+    this.debounced_validateIdentifierValue = debounce(
+      this.validateIdentifierValue,
+      300
+    );
+    this.debounced_validateSubclass = debounce(this.validateSubclass, 300);
+    this.debounced_validateDisclosureDate = debounce(
+      this.validateDisclosureDate,
+      300
+    );
+    this.debounced_validateDocumentLanguage = debounce(
+      this.validateDocumentLanguage,
+      300
+    );
+    this.debounced_validateComment = debounce(this.validateComment, 300);
+    this.debounced_validateFinancialYear = debounce(
+      this.validateFinancialYear,
+      300
+    );
   },
   mounted() {
     this.startEventListenerFile();
   },
   watch: {
-    disclosure_date: function(strDate, oldDate) {
-      this.debouncedValidateDate();
+    issuer_name: function() {
+      this.debounced_validateIssuerName();
+    },
+    home_member_state: function() {
+      this.debounced_validateHomeMemberState();
+    },
+    identifier_id: function() {
+      this.debounced_validateIdentifierId();
+    },
+    identifier_value: function() {
+      this.debounced_validateIdentifierValue();
+    },
+    subclass: function() {
+      this.debounced_validateSubclass();
+    },
+    disclosure_date: function() {
+      this.debounced_validateDisclosureDate();
+    },
+    document_language: function() {
+      this.debounced_validateDocumentLanguage();
+    },
+    comment: function() {
+      this.debounced_validateComment();
+    },
+    financial_year: function() {
+      this.debounced_validateFinancialYear();
     }
   },
   methods: {
@@ -247,7 +326,16 @@ export default {
       //Principal function to submit the file and data
       async function submit_async() {
         //Validation of data
-        if (!self.validateDate()) {
+        if (
+          !self.validateIssuerName(true) ||
+          !self.validateHomeMemberState(true) ||
+          !self.validateIdentifierId(true) ||
+          !self.validateIdentifierValue(true) ||
+          !self.validateSubclass(true) ||
+          !self.validateDisclosureDate(true) ||
+          !self.validateComment(true) ||
+          !self.validateFinancialYear(true)
+        ) {
           //todo: all validations
           console.log("Error validating fields!");
           return false;
@@ -282,6 +370,14 @@ export default {
         console.log(response);
 
         //Creation of the new post in the blockchain
+        var discDate = "";
+        try {
+          discDate = Utils.dateToString(
+            self.ddmmyyyytoDate(self.disclosure_date)
+          );
+        } catch (e) {
+          discDate = "";
+        }
 
         var json_metadata = {
           issuer_name: self.issuer_name,
@@ -289,9 +385,7 @@ export default {
           identifier_id: self.identifier_id,
           identifier_value: self.identifier_value,
           subclass: self.subclass,
-          disclosure_date: Utils.dateToString(
-            self.ddmmyyyytoDate(self.disclosure_date)
-          ),
+          disclosure_date: discDate,
           document_language: self.document_language,
           comment: self.comment,
           financial_year: self.financial_year,
@@ -323,7 +417,7 @@ export default {
     clear() {
       this.issuer_name = "";
       this.home_member_state = "";
-      this.identifier_id = "";
+      this.identifier_id = "1";
       this.identifier_value = "";
       this.subclass = "";
       this.disclosure_date = "";
@@ -383,7 +477,106 @@ export default {
     },
 
     //validation
-    validateDate() {
+    validateIssuerName(submit) {
+      if (submit && this.issuer_name === "") {
+        this.error.issuer_name = true;
+        this.errorText.issuer_name = "Issuer name is empty";
+        return false;
+      }
+      if (this.issuer_name.length > 200) {
+        this.error.issuer_name = true;
+        this.errorText.issuer_name = "The issuer name is too long";
+        return false;
+      }
+      this.error.issuer_name = false;
+      this.errorText.issuer_name = "No error";
+      return true;
+    },
+
+    validateHomeMemberState(submit) {
+      if (submit && this.home_member_state === "") {
+        this.error.home_member_state = true;
+        this.errorText.home_member_state = "Please select a home member state";
+        return false;
+      }
+      this.error.home_member_state = false;
+      this.errorText.home_member_state = "No error";
+      return true;
+    },
+
+    validateIdentifierId(submit) {
+      //nothing to check
+      this.error.identifier_id = false;
+      this.errorText.identifier_id = "No error";
+      return true;
+    },
+
+    validateIdentifierValue(submit) {
+      if (submit && this.identifier_value === "") {
+        this.error.identifier_value = true;
+        this.errorText.identifier_value = "The identifier value is empty";
+        return false;
+      }
+
+      if (this.identifier_value.length < 3) {
+        this.error.identifier_value = true;
+        this.errorText.identifier_value = "The identifier value is too short";
+        return false;
+      }
+
+      switch (this.identifier_id) {
+        case "1": //LEI
+          if (this.identifier_value.length !== 20) {
+            this.error.identifier_value = true;
+            this.errorText.identifier_value =
+              "Legal Entity Identifier must have 20 characters";
+            return false;
+          }
+        case "2": //VAT Number
+          break;
+        case "3": //Reg number
+          break;
+        case "4": //ISIN
+          if (this.identifier_value.length !== 12) {
+            this.error.identifier_value = true;
+            this.errorText.identifier_value =
+              "ISIN number must have 12 characters";
+            return false;
+          }
+          if (!Utils.hasCountryCode(this.identifier_value)) {
+            this.error.identifier_value = true;
+            this.errorText.identifier_value =
+              "ISIN number must starts with the country code";
+            return false;
+          }
+        default:
+      }
+
+      this.error.identifier_value = false;
+      this.errorText.identifier_value = "No error";
+      return true;
+    },
+
+    validateSubclass(submit) {
+      if (submit && this.subclass === "") {
+        this.error.subclass = true;
+        this.errorText.subclass = "Please select a subclass";
+        return false;
+      }
+
+      this.error.subclass = false;
+      this.errorText.subclass = "No error";
+      return true;
+    },
+
+    validateDisclosureDate(submit) {
+      //this is an optional field
+      if (this.disclosure_date === "") {
+        this.error.disclosure_date = false;
+        this.errorText.disclosure_date = "No error";
+        return true;
+      }
+
       try {
         this.ddmmyyyytoDate(this.disclosure_date);
       } catch (e) {
@@ -393,6 +586,41 @@ export default {
       }
       this.error.disclosure_date = false;
       this.errorText.disclosure_date = "No error";
+      return true;
+    },
+
+    validateDocumentLanguage(submit) {
+      //this is an optional field
+      //nothing to check
+      this.error.document_language = false;
+      this.errorText.document_language = "No error";
+      return true;
+    },
+
+    validateComment(submit) {
+      //this is an optional field
+      //nothing to check
+      this.error.comment = false;
+      this.errorText.comment = "No error";
+      return true;
+    },
+
+    validateFinancialYear(submit) {
+      //this is an optional field
+      if (this.financial_year === "") {
+        this.error.financial_year = false;
+        this.errorText.financial_year = "No error";
+        return true;
+      }
+
+      var number = this.financial_year;
+      if (number !== String(parseInt(number, 10))) {
+        this.error.financial_year = true;
+        this.errorText.financial_year = "Incorrect year";
+        return false;
+      }
+      this.error.financial_year = false;
+      this.errorText.financial_year = "No error";
       return true;
     }
   }
@@ -436,7 +664,7 @@ export default {
   outline: -webkit-focus-ring-color auto 5px;
 }
 
-.danger {
+.dangertext {
   color: red;
 }
 </style>
