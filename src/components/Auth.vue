@@ -28,6 +28,7 @@
           <button @click="try_to_login">Login</button>
           <button @click="close">Cancel</button>
         </div>
+        <div v-if="error" class="dangertext">{{ errorText }}</div>
       </section>
     </div>
   </div>
@@ -55,7 +56,9 @@ export default {
           posting: null,
           memo: null
         }
-      }
+      },
+      error: false,
+      errorText: "No error"
     };
   },
 
@@ -75,7 +78,10 @@ export default {
           }*/
         }
       }
-      main().catch(console.error);
+      main().catch(function(error) {
+        self.error = true;
+        self.errorText = error.message;
+      });
     },
 
     /**
@@ -90,8 +96,8 @@ export default {
 
       // keysFromWIF: suppossing that password is WIF
       var keysFromWIF = {
-        owner: { public: "", private: "" },
-        active: { public: "", private: "" },
+        //owner: { public: "", private: "" },
+        //active: { public: "", private: "" },
         posting: { public: "", private: "" }
       };
 
@@ -114,12 +120,14 @@ export default {
         .toString();
 
       var client = new dsteem.Client(Config.RPC_NODE.url);
-      var roles = ["owner", "active", "posting"];
+      //var roles = ["owner", "active", "posting"];
+      var roles = ["posting"];
       //let self = this;
 
       const accounts = await client.database.getAccounts([_username]);
       if (accounts.length === 0)
-        throw new Error("User @" + _username + " does not exists");
+        throw new Error("user @" + _username + " does not exists");
+
       var account = accounts[0];
       var json_metadata = JSON.parse(account.json_metadata);
       var keyFound = false;
@@ -157,7 +165,7 @@ export default {
         }
       }
 
-      if (!keyFound) throw new Error("Incorrect password or WIF");
+      if (!keyFound) throw new Error("incorrect posting key or WIF");
 
       auth.logged = true;
       auth.user = _username;
@@ -165,6 +173,9 @@ export default {
 
       console.log("Correct " + typeOfPassword + " key");
       console.log("Welcome @" + _username);
+      this.error = false;
+      this.errorText = "No error";
+
       return auth;
     },
 
@@ -237,5 +248,9 @@ export default {
 
 .prefix {
   display: inline-block;
+}
+
+.dangertext {
+  color: red;
 }
 </style>
