@@ -2,50 +2,69 @@
   <div>
     <HeaderEFTG ref="headerEFTG"></HeaderEFTG>
     <form>
-    <div class="container p-5">
-      <div class="form-row">
-        <fieldset class="form-group col-md-6">
-          <label>ISSUER NAME</label>
-          <multiselect v-model="issuerName" tag-placeholder="Select ISSUER NAME" placeholder="Select Issuer Name" label="name" track-by="id" :options="optionsIssuerName" :multiple="true" :taggable="true" @tag="addTag"></multiselect>
-        </fieldset>
-        <fieldset class="form-group col-md-6">
-          <label>HOME MEMBER STATE</label>
-          <multiselect v-model="homeMemberState" tag-placeholder="Select  Home Member State" placeholder="Select Home Member State" label="name" track-by="id" :options="optionsHomeMemberState" :multiple="true" :taggable="true" @tag="addTag"></multiselect>
-        </fieldset>
-      </div>
-      <div class="form-row">
-        <fieldset class="form-group col-md-9">
-          <label>DOCUMENT CLASS AND SUBCLASS</label>
-          <multiselect v-model="docClass" tag-placeholder="Select document class and subclass" placeholder="Search or choose" label="name" track-by="id" :options="optionsDocClass" :multiple="true" :taggable="true" @tag="addTag"></multiselect>
-        </fieldset>
-        <fieldset class="form-group col-md-3">
-          <label>FINANCIAL YEAR</label>
-          <multiselect v-model="financialYear" tag-placeholder="Select financial year" placeholder="Select financial year" label="id" track-by="id" :options="optionsFinancialYear" :multiple="true" :taggable="true" @tag="addTag"></multiselect>
-        </fieldset>
-      </div>
-      <div class="form-row">
-        <fieldset class="form-group col-md-9">
-          <label class="control-label">SEARCH TITLE BY KEYWORD</label>
-          <div class="input-group">
-              <input type="text" class="form-control" aria-label="Input keywords">
-              <div class="input-group-append">
-                <i class="fa fa-user-circle-o"></i>
-              </div>
+    <div class="container p-5 eftg-container">
+      <div class="row">
+        <div class="col-md-9">
+          <div class="form-row">
+            <fieldset class="form-group col-md-6">
+              <label class="eftg-label">ISSUER NAME</label>
+              <multiselect v-model="issuerName" tag-placeholder="Select ISSUER NAME" placeholder="Select Issuer Name" label="name" track-by="id" :options="optionsIssuerName" :multiple="true" :taggable="true" @tag="addTag"></multiselect>
+            </fieldset>
+            <fieldset class="form-group col-md-6">
+              <label class="eftg-label">HOME MEMBER STATE</label>
+              <multiselect v-model="homeMemberState" tag-placeholder="Select  Home Member State" placeholder="Select Home Member State" label="name" track-by="id" :options="optionsHomeMemberState" :multiple="true" :taggable="true" @tag="addTag"></multiselect>
+            </fieldset>
           </div>
-        </fieldset>
-        <fieldset class="form-group col-md-3 align-bottom" style="padding-top: 8px;">
-          <br/>
-          <button type="submit" class="btn btn-primary" v-on:click="submit">Submit</button>
-          <button type="button" class="btn btn-secondary" v-on:click="clear">Clear</button>
-        </fieldset>
+          <div class="form-row">
+            <fieldset class="form-group col-md-3">
+              <label class="eftg-label">DISCLOSURE DATE FROM</label>
+              <input v-model="disclosureDateFrom" type="date" class="form-control" placeholder="dd/mm/yyyy">
+            </fieldset>
+            <fieldset class="form-group col-md-3">
+              <label class="eftg-label">DISCLOSURE DATE TO</label>
+              <input v-model="disclosureDateTo" type="date" class="form-control" placeholder="dd/mm/yyyy">
+            </fieldset>
+            <fieldset class="form-group col-md-6">
+              <label class="eftg-label">LEGAL IDENTIFIER</label>
+              <multiselect v-model="legalIdentifier" tag-placeholder="Select legal identifier" placeholder="Select legal identifier" label="name" track-by="id" :options="optionsLegalIdentifier" :multiple="true" :taggable="true" @tag="addTag"></multiselect>
+            </fieldset>
+          </div>
+          <div class="form-row">
+            <fieldset class="form-group col-md-9">
+              <label class="eftg-label">DOCUMENT CLASS AND SUBCLASS</label>
+              <multiselect v-model="docClass" tag-placeholder="Select document class and subclass" placeholder="Search or choose" label="name" track-by="id" :options="optionsDocClass" :multiple="true" :taggable="true" @tag="addTag"></multiselect>
+            </fieldset>
+            <fieldset class="form-group col-md-3">
+              <label class="eftg-label">FINANCIAL YEAR</label>
+              <multiselect v-model="financialYear" tag-placeholder="Select financial year" placeholder="Select financial year" label="id" track-by="id" :options="optionsFinancialYear" :multiple="true" :taggable="true" @tag="addTag"></multiselect>
+            </fieldset>
+          </div>
+          <div class="form-row">
+            <fieldset class="form-group col-md-9">
+              <label class="eftg-label">SEARCH TITLE BY KEYWORD</label>
+              <input v-model="title" type="text" class="form-control" aria-label="Input keywords" placeholder="Keywords">
+            </fieldset>
+            <fieldset class="form-group col-md-3 align-bottom" style="padding-top: 8px;">
+              <br/>
+              <button type="submit" class="btn btn-primary" v-on:click="submit">Submit</button>
+              <button type="button" class="btn btn-secondary" v-on:click="clear">Clear</button>
+            </fieldset>
+          </div>
+        </div>
+        <div class="col-md-3">
+            <div class="eftg-pdf-preview">PDF PREVIEW</div>
+        </div>
       </div>
     </div>
     </form>
     <div>
         <pre class="language-json">Issuer Name<code>{{ issuerName  }}</code></pre>
         <pre class="language-json">Home Member State<code>{{ homeMemberState  }}</code></pre>
-        <pre class="language-json">Class<code>{{ docClass  }}</code></pre>
+        <pre class="language-json">Disclosure Date From<code>{{ disclosureDateFrom  }}</code></pre>
+        <pre class="language-json">Disclosure Date To<code>{{ disclosureDateTo  }}</code></pre>
+        <pre class="language-json">Legal identifier<code>{{ legalIdentifier  }}</code></pre>
         <pre class="language-json">Financial year<code>{{ financialYear  }}</code></pre>
+        <pre class="language-json">Title: <code>{{ title  }}</code></pre>
       </div>
   </div>
 </template>
@@ -70,6 +89,8 @@ export default {
           name: "Facebook S.A."
         }
       ],
+      disclosureDateFrom: null,
+      disclosureDateTo: null,
       homeMemberState: [{id: "RO", name: "Romania"}],
       optionsHomeMemberState: [{
           id: "RO",
@@ -77,6 +98,15 @@ export default {
         }, {
           id: "SP",
           name: "Spain"
+        }
+      ],
+      legalIdentifier: [{id: "4000302021", name: "4000302021"}],
+      optionsLegalIdentifier: [{
+          id: "4000302021RO",
+          name: "4000302021"
+        }, {
+          id: "815600828773",
+          name: "815600828773"
         }
       ],
       financialYear : [{id: "2018"}],
@@ -125,6 +155,7 @@ export default {
           ]
         }
       ],
+      title: ""
     };
   },
   components: {
@@ -156,6 +187,19 @@ export default {
 
 #bodyForm .multiselect__tag {
   background-color: blue !important;
+}
+
+.eftg-label {
+  font-size: 12px;
+  color: #AEAEAE;
+}
+
+.eftg-pdf-preview {
+  height: 350px;
+  padding: 5px;
+  text-align: center;
+  background-color: #ccc;
+  border: 1px solid #aaa;
 }
 
 </style>
