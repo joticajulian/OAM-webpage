@@ -144,9 +144,18 @@
           </div>
         </div>
       </div>
-      <div>
-        <input type="file" name="file" id="file" class="inputfile" />
+      <div class="form-input-error">
+        <input
+          type="file"
+          name="file"
+          id="file"
+          @change="validateFile"
+          class="inputfile"
+        />
         <label for="file">Upload file</label>
+        <div v-if="error.file" class="small dangertext">
+          {{ errorText.file }}
+        </div>
       </div>
       <div class="right">
         <button v-on:click="submit">Submit</button>
@@ -240,7 +249,8 @@ export default {
         disclosure_date: false,
         document_language: false,
         comment: false,
-        financial_year: false
+        financial_year: false,
+        file: false
       },
       errorText: {
         issuer_name: "No error",
@@ -251,7 +261,8 @@ export default {
         disclosure_date: "No error",
         document_language: "No error",
         comment: "No error",
-        financial_year: "No error"
+        financial_year: "No error",
+        file: "No error"
       }
     };
   },
@@ -326,23 +337,28 @@ export default {
       //Principal function to submit the file and data
       async function submit_async() {
         //Validation of data
-        if (
-          !self.validateIssuerName(true) ||
-          !self.validateHomeMemberState(true) ||
-          !self.validateIdentifierId(true) ||
-          !self.validateIdentifierValue(true) ||
-          !self.validateSubclass(true) ||
-          !self.validateDisclosureDate(true) ||
-          !self.validateComment(true) ||
-          !self.validateFinancialYear(true)
-        ) {
-          //todo: all validations
+        var valid = true;
+        valid = self.validateIssuerName(true) && valid;
+        valid = self.validateHomeMemberState(true) && valid;
+        valid = self.validateIdentifierId(true) && valid;
+        valid = self.validateIdentifierValue(true) && valid;
+        valid = self.validateSubclass(true) && valid;
+        valid = self.validateDisclosureDate(true) && valid;
+        valid = self.validateComment(true) && valid;
+        valid = self.validateFinancialYear(true) && valid;
+        valid = self.validateFile(true) && valid;
+
+        if (!valid) {
           console.log("Error validating fields!");
           return false;
         }
 
         //User credentials
-        //todo: validation login!!!!!
+        if (!self.$refs.headerEFTG.auth.logged) {
+          self.$refs.headerEFTG.login();
+          //todo: make than after login it submits the post automatically
+          return;
+        }
         var username = self.$refs.headerEFTG.auth.user;
         var privKey = self.$refs.headerEFTG.auth.keys.posting;
 
@@ -364,8 +380,10 @@ export default {
         var urlWithSignature =
           Config.IMAGE_HOSTER.url + "/" + username + "/" + signature;
 
+        //TODO: try - catch to check if the file size is too long and there is an error
         var response = await axios.post(urlWithSignature, formFile);
-        //TODO: try - catch to check if the file is too long and there is an error
+        var pdfUrl = response.data.url;
+
         console.log("response from image hoster");
         console.log(response);
 
@@ -373,11 +391,13 @@ export default {
         var discDate = "";
         try {
           discDate = Utils.dateToString(
-            self.ddmmyyyytoDate(self.disclosure_date)
+            Utils.ddmmyyyytoDate(self.disclosure_date)
           );
         } catch (e) {
           discDate = "";
         }
+
+        var body = "[[pdf link]](" + pdfUrl + "}})";
 
         var json_metadata = {
           issuer_name: self.issuer_name,
@@ -398,18 +418,33 @@ export default {
           submission_date: Utils.dateToString(new Date())
         };
 
+        //create a permlink taking into account the existing posts
+        var client = new dsteem.Client(Config.RPC_NODE.url);
+        var addRandom = false;
+        while (true) {
+          var permlink = Utils.createPermLink(self.comment, addRandom);
+          var urlPost = "oam/@" + username + "/" + permlink;
+          var post = await client.database.getState(urlPost);
+          console.log(post);
+          break;
+        }
+
         var post = {
-          author: self.$refs.headerEFTG.auth.user,
-          body: "",
-          json_metadata: json_metadata,
+          author: username,
+          body: body, //todo: link pdf
+          json_metadata: JSON.stringify(json_metadata),
           parent_author: "",
           parent_permlink: "oam",
-          perm_link: "test-post",
-          title: "test data entry"
+          permlink: permlink,
+          title: self.comment
         };
 
         console.log("post");
         console.log(post);
+
+        var result = await client.broadcast.comment(post, privKey);
+        console.log("document publised!");
+        console.log(result);
       }
       submit_async().catch(console.error);
     },
@@ -436,20 +471,6 @@ export default {
         if (fileName) label.innerHTML = fileName;
         else label.innerHTML = labelVal;
       });
-    },
-
-    ddmmyyyytoDate(str) {
-      var array = str.split("/");
-      if (array.length !== 3) throw new Error("Invalid date format");
-      var date = new Date(array[2] + "/" + array[1] + "/" + array[0]);
-      if (
-        date.getDate() + "" !== array[0] ||
-        date.getMonth() + 1 + "" !== array[1] ||
-        date.getFullYear() + "" !== array[2]
-      ) {
-        throw new Error("Invalid date format");
-      }
-      return date;
     },
 
     //Definition of the function to read a file using Promises (better for using await)
@@ -578,7 +599,7 @@ export default {
       }
 
       try {
-        this.ddmmyyyytoDate(this.disclosure_date);
+        Utils.ddmmyyyytoDate(this.disclosure_date);
       } catch (e) {
         this.error.disclosure_date = true;
         this.errorText.disclosure_date = "Invalid date format, use dd/mm/yyyy";
@@ -621,6 +642,17 @@ export default {
       }
       this.error.financial_year = false;
       this.errorText.financial_year = "No error";
+      return true;
+    },
+
+    validateFile(submit) {
+      if (submit && document.getElementById("file").files.length === 0) {
+        this.error.file = true;
+        this.errorText.file = "Please select a file";
+        return false;
+      }
+      this.error.file = false;
+      this.errorText.file = "No error";
       return true;
     }
   }
