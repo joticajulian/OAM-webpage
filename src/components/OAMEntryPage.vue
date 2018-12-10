@@ -108,6 +108,12 @@
               {{ errorText.disclosure_date }}
             </div>
           </div>
+          <input
+            type="text"
+            v-model="disclosure_date"
+            placeholder="dd/mm/yyyy"
+            :class="{ danger: error.disclosure_date }"
+          />
         </div>
         <div class="block-input">
           <div class="form-label">Document language</div>
