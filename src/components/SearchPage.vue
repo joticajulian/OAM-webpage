@@ -36,7 +36,7 @@
             </fieldset>
             <fieldset class="form-group col-md-3">
               <label class="eftg-label">FINANCIAL YEAR</label>
-              <multiselect v-model="financialYear" class="eftg-multiselect" tag-placeholder="Select" placeholder="Select financial year" label="id" track-by="id" :options="optionsFinancialYear" :multiple="true" :taggable="true" @tag="addTag"></multiselect>
+              <multiselect v-model="financialYear" class="eftg-multiselect" tag-placeholder="Select" placeholder="Select financial year" label="id" :showLabels="false" track-by="id" :options="optionsFinancialYear" :multiple="true" :taggable="true" @tag="addTag"></multiselect>
             </fieldset>
           </div>
           <div class="form-row">
@@ -188,6 +188,13 @@ export default {
 .eftg-multiselect .multiselect__tags .multiselect__tags-wrap .multiselect__tag {
   background-color: #0F5494;
 }
+
+.eftg-multiselect .multiselect__tags .multiselect__tags-wrap .multiselect__tag .multiselect__tag-icon:after{
+  background-color: #0F5494;
+}
+
+.multiselect__tag-icon:focus, .multiselect__tag-icon:hover{background:rgb(24, 89, 150);}
+
 </style>
 <style scoped>
 .eftg-label {
