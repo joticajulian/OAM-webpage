@@ -37,12 +37,13 @@ export default {
       typeof metadata.profile.profile_image !== "undefined"
     ) {
       var url = metadata.profile.profile_image;
-      if (url.substring(0, 8) == "![image]") {
+      if (url.substring(0, 8) === "![image]") {
         return url.substring(9, url.length - 1);
       }
-      return url;
+      return "'" + url + "'";
     }
-    return "";
+    //return "'https://steemitimages.com/u/anyx/avatar/small'";
+    return "'../assets/no-picture-profile.png'";
   },
 
   getVotingPower: function(account) {
@@ -117,5 +118,45 @@ export default {
     var zeroString = "00000";
     if (!len) len = 2;
     return zeroString.substring((num + "").length, len) + num;
+  },
+
+  ddmmyyyytoDate(str) {
+    var array = str.split("/");
+    if (array.length !== 3) throw new Error("Invalid date format");
+    var date = new Date(array[2] + "/" + array[1] + "/" + array[0]);
+    if (
+      this.pad0(date.getDate()) + "" !== array[0] ||
+      this.pad0(date.getMonth() + 1) + "" !== array[1] ||
+      this.pad0(date.getFullYear(), 4) + "" !== array[2]
+    ) {
+      throw new Error("Invalid date format");
+    }
+    return date;
+  },
+
+  isUpLetter: function(c) {
+    var A = "A".charCodeAt(0);
+    var Z = "Z".charCodeAt(0);
+    var code = c.charCodeAt(0);
+    return code >= A && code <= Z;
+  },
+
+  hasCountryCode: function(str) {
+    return this.isUpLetter(str[0]) && this.isUpLetter(str[1]);
+  },
+
+  createPermLink: function(str, addRandom) {
+    if (str === "") addRandom = true;
+    if (addRandom)
+      str =
+        Math.random()
+          .toString(36)
+          .substring(7) +
+        "-" +
+        str;
+    return str
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^0-9a-z-]/gi, "");
   }
 };
