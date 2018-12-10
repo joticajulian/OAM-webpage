@@ -10,11 +10,16 @@
       </div>
       <div id="auth">
         <div v-if="auth.logged">
-          <div id="image-profile">
-            <div v-if="validImageUrl(auth.imgUrl)">
-              <img :src="auth.imgUrl" />
-            </div>
-            <div v-else><img src="../assets/no-picture-profile.png" /></div>
+          <div
+            id="image-profile"
+            v-bind:style="{ backgroundImage: 'url(' + auth.imgUrl + ')' }"
+          >
+            <!--
+              <div v-if="validImageUrl(auth.imgUrl)">
+                <img :src="auth.imgUrl" />
+              </div>
+              <div v-else><img src="../assets/no-picture-profile.png" /></div>
+            -->
           </div>
           <button @click="logout">Logout</button>
         </div>
@@ -108,9 +113,49 @@ export default {
 
 #logo {
   display: inline-block;
+  height: 2rem;
+}
+
+#logo img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+#brand {
+  display: inline-block;
+}
+
+#auth {
+  display: flex;
+  justify-content: flex-end;
+  float: right;
+  align-items: center;
+  height: 2rem;
+  max-height: 100%;
+  //display: inline-block;
+  //float:right;
+}
+
+#auth div {
+  max-height: 100%;
+  vertical-align: middle;
+}
+
+#image-profile {
+  display: inline-block;
+  height: 2rem;
+  width: 2rem;
+  margin-right: 5px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center center;
+  border-radius: 50%;
+  //padding: 7px;
 }
 
 .powered {
   display: inline-block;
+  margin-left: 10px;
+  font-size: 0.6rem;
 }
 </style>

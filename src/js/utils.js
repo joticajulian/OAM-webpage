@@ -37,12 +37,13 @@ export default {
       typeof metadata.profile.profile_image !== "undefined"
     ) {
       var url = metadata.profile.profile_image;
-      if (url.substring(0, 8) == "![image]") {
+      if (url.substring(0, 8) === "![image]") {
         return url.substring(9, url.length - 1);
       }
-      return url;
+      return "'" + url + "'";
     }
-    return "";
+    //return "'https://steemitimages.com/u/anyx/avatar/small'";
+    return "'../assets/no-picture-profile.png'";
   },
 
   getVotingPower: function(account) {
