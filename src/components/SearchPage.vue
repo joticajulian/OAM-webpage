@@ -8,11 +8,11 @@
           <div class="form-row">
             <fieldset class="form-group col-md-6">
               <label class="eftg-label">ISSUER NAME</label>
-              <multiselect v-model="issuerName" tag-placeholder="Select ISSUER NAME" placeholder="Select Issuer Name" label="name" track-by="id" :options="optionsIssuerName" :multiple="true" :taggable="true" @tag="addTag"></multiselect>
+              <multiselect v-model="issuerName" class="eftg-multiselect" tag-placeholder="Select" placeholder="Select Issuer Name" label="name" track-by="id" :options="optionsIssuerName" :multiple="true" :taggable="true" @tag="addTag"></multiselect>
             </fieldset>
             <fieldset class="form-group col-md-6">
               <label class="eftg-label">HOME MEMBER STATE</label>
-              <multiselect v-model="homeMemberState" tag-placeholder="Select  Home Member State" placeholder="Select Home Member State" label="name" track-by="id" :options="optionsHomeMemberState" :multiple="true" :taggable="true" @tag="addTag"></multiselect>
+              <multiselect v-model="homeMemberState" class="eftg-multiselect" tag-placeholder="Select" placeholder="Select Home Member State" label="name" track-by="id" :options="optionsHomeMemberState" :multiple="true" :taggable="true" @tag="addTag"></multiselect>
             </fieldset>
           </div>
           <div class="form-row">
@@ -26,17 +26,17 @@
             </fieldset>
             <fieldset class="form-group col-md-6">
               <label class="eftg-label">LEGAL IDENTIFIER</label>
-              <multiselect v-model="legalIdentifier" tag-placeholder="Select legal identifier" placeholder="Select legal identifier" label="name" track-by="id" :options="optionsLegalIdentifier" :multiple="true" :taggable="true" @tag="addTag"></multiselect>
+              <multiselect v-model="legalIdentifier" class="eftg-multiselect" tag-placeholder="Select" placeholder="Select legal identifier" label="name" track-by="id" :options="optionsLegalIdentifier" :multiple="true" :taggable="true" @tag="addTag"></multiselect>
             </fieldset>
           </div>
           <div class="form-row">
             <fieldset class="form-group col-md-9">
               <label class="eftg-label">DOCUMENT CLASS AND SUBCLASS</label>
-              <multiselect v-model="docClass" tag-placeholder="Select document class and subclass" placeholder="Search or choose" label="name" track-by="id" :options="optionsDocClass" :multiple="true" :taggable="true" @tag="addTag"></multiselect>
+              <multiselect v-model="docClass" class="eftg-multiselect" tag-placeholder="Select" placeholder="Search or choose" label="name" track-by="id" :options="optionsDocClass" :multiple="true" :taggable="true" @tag="addTag"></multiselect>
             </fieldset>
             <fieldset class="form-group col-md-3">
               <label class="eftg-label">FINANCIAL YEAR</label>
-              <multiselect v-model="financialYear" tag-placeholder="Select financial year" placeholder="Select financial year" label="id" track-by="id" :options="optionsFinancialYear" :multiple="true" :taggable="true" @tag="addTag"></multiselect>
+              <multiselect v-model="financialYear" class="eftg-multiselect" tag-placeholder="Select" placeholder="Select financial year" label="id" track-by="id" :options="optionsFinancialYear" :multiple="true" :taggable="true" @tag="addTag"></multiselect>
             </fieldset>
           </div>
           <div class="form-row">
@@ -46,8 +46,8 @@
             </fieldset>
             <fieldset class="form-group col-md-3 align-bottom" style="padding-top: 8px;">
               <br/>
-              <button type="submit" class="btn btn-primary" v-on:click="submit">Submit</button>
-              <button type="button" class="btn btn-secondary" v-on:click="clear">Clear</button>
+              <button type="submit" class="btn btn-primary eftg-btn-primary" v-on:click="submit">Submit</button>
+              <button type="button" class="btn btn-secondary eftg-btn-secondary" v-on:click="clear">Clear</button>
             </fieldset>
           </div>
         </div>
@@ -183,12 +183,13 @@ export default {
   }
 };
 </script>
-<style scoped>
-
-#bodyForm .multiselect__tag {
-  background-color: blue !important;
+<style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
+<style>
+.eftg-multiselect .multiselect__tags .multiselect__tags-wrap .multiselect__tag {
+  background-color: #0F5494;
 }
-
+</style>
+<style scoped>
 .eftg-label {
   font-size: 12px;
   color: #AEAEAE;
@@ -202,6 +203,12 @@ export default {
   border: 1px solid #aaa;
 }
 
+.eftg-btn-primary {
+  background-color: #0F5494;
+}
+
+.eftg-btn-secondary {
+  background-color:#C3C3C3; 
+}
 </style>
-<style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
 
